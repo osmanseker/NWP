@@ -3,7 +3,14 @@
 
 int main()
 {
-    int arrsize = 10;
+    //ik probeer te werken met containers of stdvectors
+}
+
+
+
+/*
+int main()
+{
     char names[10][15];
     int votes[10] = {0};
     int most_votes = votes[0];
@@ -17,7 +24,7 @@ int main()
     printf("\nThe rules are very simpel: Don't get voted out as crewmate OR don't get killed by the imposters!\n");
     printf("\nThe goals is to vote the imposters out before they kill all the crewmates!\n");
     printf("\n**************************************************************************\n\n\n");
-*/
+//comment sluiten
     //storing 10 player names in array
     printf("Enter player names: \n\n");
     for (int i = 0; i < 10;i++)
@@ -53,31 +60,17 @@ int main()
         for (i = kill; i < 10; i++)
         votes[i] = votes[i+1];
 
-        if(kill < 0 || kill > 10 )
-        {
-                printf("Invalid vote");
-        }
-        else
-        {
-          //Traverse an array
-          for(i = kill-1; i <10; i++)
-          {
-              votes[i] = votes[i+1];
-          }
-          arrsize--;
-
-          printf("Remaining players\n");
-          for(i = 0; i < 10; i++)
-          {
-                printf("%d\n", votes[i]);
-          }
-        }
-
         printf("The imposters killed %d", kill);
+
+
 
         //Voting system for crewmembers
         printf("\n\nCrewmembers...time to vote...\n");
-         for (int i = 0;i < 10;i++)
+        for (i = 0; i < 10; i++)
+        {
+            printf("%s", names[i]);
+        }
+         for (int i = 0; i < 10;i++)
          {
             int persoon = 0;
 
@@ -126,4 +119,4 @@ int main()
 
     return 0;
 }
-
+*/
