@@ -1,4 +1,4 @@
-# Among US with ZMQ
+# Among US in C with ZMQ
 
 ## General explanation
 
