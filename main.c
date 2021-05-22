@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <assert.h>
+
 
 char *strsep(char **stringp, const char *delim) {
     char *rv = *stringp;
