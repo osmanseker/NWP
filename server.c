@@ -33,12 +33,21 @@ int main( int argc, char * argv[] )
 {
     //filter instellen
     const char *filterjoin = (argc > 1)? argv [1]: "AmongUs>player!>";
+    const char *filtervote = (argc > 1)? argv [1]: "AmongUs>vote!>";
 
     //variables
-    char *names[3][15];
+    int votes[10] = {0};
+    char *names[10][15];
+    int players = 10;
+    int rounds = 9;
+    int opsomming = 1;
+    char opsommingS[10];
     int j = 0;
     srand(time(0));
 
+
+    char sentnames[16] = "AmongUs>Player?>";
+    char sentall[256];
     char buffer [256];
     char *ParsedString;
 
@@ -68,6 +77,7 @@ int main( int argc, char * argv[] )
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filterjoin, 10);
 
     //stroring player names in names[] and displaying joined players
+    printf("waiting for players to enter name...\n\n");
     for( int i = 0; i < 4; i++)
     {
         memset(buffer,0,256);
@@ -76,8 +86,48 @@ int main( int argc, char * argv[] )
         printf("Player %d : %s\n", i+1, names[i][14]);
     }
 
+    //print list of players to all clients
+    strcat(sentall,"These are the players that joined\n\n");
+    for (int i = 0; i < 4; i++)
+    {
+
+        sprintf(opsommingS, "%d. ",i+1);
+        strcat(sentall, opsommingS);
+        //strcat(sentall, " ");
+        strcat(sentall,names[i][14]);
+        strcat(sentall, "\n");
+
+    }
+    strcat(sentnames, sentall);
+    zmq_send(publisher, sentnames, strlen(sentnames),0);
+    printf("\nAll players joined\n\n");
+
+    sleep(1);
+
+    //voting system for crewmembers
+    printf("Crewmembers are voting...\n\n");
+    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filtervote, 14);
+    for (int i = 0; i< 4; i++)
+    {
+        zmq_send(publisher, "AmongUs>vote?>Choose the number of player who you want to vote: ", 64,0);
+    }
+
+    for( int i = 0; i < 4; i++)
+    {
+        memset(buffer,0,256);
+        zmq_recv(subscriber, buffer, 256, 0);
+        ParsedString = parse(3, buffer);
+        printf("%s\n", buffer);
+        //votes[i] = atoi(ParsedString);;
+        //printf("Player %s voted for %d\n", names[i][14], votes[i]);
+    }
+    printf("debug print after votes came in");
 
 
+
+
+//    }
+    zmq_close (subscriber);
     zmq_close (publisher);
     zmq_ctx_destroy (context);
     return 0;
