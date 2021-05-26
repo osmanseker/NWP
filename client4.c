@@ -31,33 +31,36 @@ int main( int argc, char * argv[] )
     //bericht
     const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player4!>";
 
-    //making chars
+    //variables
+    char sendvote[20];
+    char tempvote[3];
+    int votelim = 0;
     char name[15];
     char sendname[50];
     char buffer [256];
     char *ParsedString;
 
-    //connect
-    printf("connecting to service...\n");
-    void *context = zmq_ctx_new();
-    void *publisher = zmq_socket(context, ZMQ_PUSH);
-    void *subscriber = zmq_socket (context, ZMQ_SUB);
+                //connect
+                printf("connecting to service...\n");
+                void *context = zmq_ctx_new();
+                void *publisher = zmq_socket(context, ZMQ_PUSH);
+                void *subscriber = zmq_socket (context, ZMQ_SUB);
 
-    int rp = zmq_connect(publisher, "tcp://benternet.pxl-ea-ict.be:24041");
-    int rs = zmq_connect( subscriber, "tcp://benternet.pxl-ea-ict.be:24042" );
+                int rp = zmq_connect(publisher, "tcp://benternet.pxl-ea-ict.be:24041");
+                int rs = zmq_connect( subscriber, "tcp://benternet.pxl-ea-ict.be:24042" );
 
-    sleep (1);
+                sleep (1);
 
-    //check if connect failed
-    if (rp != 0 && rs != 0)
-    {
-        printf("ERROR: ZeroMQ error occurred during zmq_ctx_new(): %s\n", zmq_strerror(errno));
-        return EXIT_FAILURE;
-    }
-    else
-    {
-        printf("connection success!\n");
-    }
+                //check if connect failed
+                if (rp != 0 && rs != 0)
+                {
+                    printf("ERROR: ZeroMQ error occurred during zmq_ctx_new(): %s\n", zmq_strerror(errno));
+                    return EXIT_FAILURE;
+                }
+                else
+                {
+                    printf("connection success!\n");
+                }
 
     //Welcoming message
     printf("\n\t\t\t\tWELCOME TO AMONG US IN C\n\n");
@@ -66,11 +69,12 @@ int main( int argc, char * argv[] )
     printf("\n**************************************************************************\n\n\n");
 
     //subscribing to player
-    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>player?>", 16);
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>Player?>", 16);
 
     //asking player for name
     printf("Enter your name: ");
     scanf("%s", name);
+    printf("waiting to join...\n");
 
     //parsing text to send
     strcpy(sendname, BerichtPlayer);
@@ -79,15 +83,35 @@ int main( int argc, char * argv[] )
     //sending name to server
     rp = zmq_send(publisher, sendname, strlen(sendname), 0);
 
-    //ontvang resultaat
+    //receive message of joined names
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
     ParsedString = parse(3, buffer);
-    printf("%s", ParsedString);
+    printf("%s\n", ParsedString);
 
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>vote?>", 14);
+    //receive message "choose to vote"
+    memset(buffer,0,256);
+    zmq_recv(subscriber, buffer, 256,0);
+    ParsedString = parse(3, buffer);
+    printf("%s\n", ParsedString);
 
-    zmq_close(publisher);
+    //code to send vote
+    do
+    {
+        scanf("%d", &votelim);
+
+    }while(votelim > 10 || votelim < 1);
+
+    sprintf(tempvote, "%d" ,votelim );
+    strcpy(sendvote, BerichtPlayer);
+    strcat(sendvote, tempvote);
+
+    printf("%s",sendvote);
+
+    zmq_send(publisher, sendvote, strlen(sendvote),0);
+
+    zmq_close (publisher);
     zmq_close (subscriber);
     zmq_ctx_destroy (context);
-    return 0;
 }
