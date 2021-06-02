@@ -32,7 +32,7 @@ int main( int argc, char * argv[] )
     const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player1!>";
 
     //variables
-    char sendvote[20];
+    char sendvote[20]; 
     char tempvote[3];
     int vote = 0;
     char name[15];
