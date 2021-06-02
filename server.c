@@ -38,18 +38,36 @@ int main( int argc, char * argv[] )
 
     //variables
     int votes[10] = {0};
-    int votecount = 0;    
+    int voteplayer0 = 0;
+    int voteplayer1 = 0;
+    int voteplayer2 = 0;
+    int voteplayer3 = 0;
     int players = 10;
     int rounds = 9;
-    int opsomming = 1;
+    int r;
     srand(time(0));
 
-    char opsommingS[10];
-    char names[10][100];
-    char sentnames[16] = "AmongUs>Player?>";
+    char sentimpmsg[10][20];
+    char sentcrewmsg[10][25];
+    char voterec[3];
+    char opsomming[10];
+    char names[10][20];
+    char sentnames[256] = "AmongUs>Player?>";
     char sentall[256];
     char buffer [256];
     char *ParsedString;
+
+    //impostermessage
+    strcpy(sentimpmsg[0], "You are imposter\n");
+    strcpy(sentimpmsg[1], "You are imposter\n");
+    strcpy(sentimpmsg[2], "You are imposter\n");
+    strcpy(sentimpmsg[3], "You are imposter\n");
+
+    //crewmember message
+    strcpy(sentcrewmsg[0], "you are crewmember\n");
+    strcpy(sentcrewmsg[1], "you are crewmember\n");
+    strcpy(sentcrewmsg[2], "you are crewmember\n");
+    strcpy(sentcrewmsg[3], "you are crewmember\n");
 
             //connect
             printf("service starting...\n");
@@ -82,77 +100,101 @@ int main( int argc, char * argv[] )
     {
         memset(buffer,0,256);
         zmq_recv(subscriber, buffer, 256, 0);
-        //names[i] = parse(3, buffer);
         strcpy(names[i],parse(3, buffer) );
         printf("Player %d : %s\n", i+1, names[i]);
     }
 
+
+
     //print list of players to all clients
-    buffer[0] = '\0';
+    printf("print voor memset\n\n");
+    memset(buffer,0,256);
+
+    //strcpy(sentnames, "AmongUs>Player?>");
     memset(sentall,0,256);
-    strcat(sentall,"These are the players that joined\n\n");
+    buffer[0] = '\0';
+    strcpy(sentall,"These are the players that joined\n\n");
+    //printf("%s\n", sentnames);
+
     for (int i = 0; i < 4; i++)
     {
-
-        sprintf(opsommingS, "%d. ",i+1);
-        strcat(sentall, opsommingS);
+        sprintf(opsomming, "%d. ",i+1);
+        strcat(sentall, opsomming);
         strcat(sentall,names[i]);
         strcat(sentall, "\n");
-
     }
+
     strcat(sentnames, sentall);
     zmq_send(publisher, sentnames, strlen(sentnames),0);
     printf("\nAll players joined\n\n");
 
     sleep(1);
-/*
+
     //subscribe to imposters and selecting 2 random imposters
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filterimposter, 18);
     printf("choosing 2 random imposters...\n\n");
     int j = 0;
     int i = rand()%4;
-        printf("%s", names[i]);
-        do
+    printf("%s\n", names[i]);
+    do
+    {
+        j= rand()%4;
+    }
+    while(i == j);
+    printf("%s\n\n", names[j]);
+    printf("imposters have been chosen\n\n");
+/*
+    //zmq_send(publisher, "AmongUs>imposter!>You are imposter!", 35,0);
+    //sending roles to clients
+    for (int i = 0; i< 4; i++)
+    {
+        if(i != r && 4 > 1)
         {
-            j= rand()%10;
+            zmq_send(publisher, sentimpmsg[i], strlen(sentimpmsg[i]),0);
         }
-        while(i == j);
-        printf("%s\n", names[j]);
-
-        printf("imposter is gekozen\n\n");
-        zmq_send(publisher, "AmongUs>imposter!>You are imposter!", 35,0);
-//    }
+        else
+        {
+            zmq_send(publisher, sentimpmsg[i], strlen(sentimpmsg[i]),0);
+        }
+    }
 */
-
-
-
-
     //voting system for crewmembers
     printf("Crewmembers are voting...\n\n");
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filtervote, 14);
-    for (int i = 0; i< 4; i++)
-    {
-        zmq_send(publisher, "AmongUs>vote?>Choose the number of player who you want to vote: ", 64,0);
-    }
+    zmq_send(publisher, "AmongUs>vote?>Choose the number of player who you want to vote: ", 64,0);
 
+    //receive incoming votes
     for( int i = 0; i < 4; i++)
     {
         memset(buffer,0,256);
         zmq_recv(subscriber, buffer, 256, 0);
         ParsedString = parse(3, buffer);
         printf("%s\n", buffer);
-        votes[i] = atoi(ParsedString);;
-        //printf("Player %s voted for %d\n", names[i][14], votes[i]);
+        votes[i] = atoi(ParsedString);
 
-        votes[i-1] = votes [i-1]+1;
+        switch (votes[i])
+        {
+            case 0:
+                voteplayer0++;
+                break;
+            case 1:
+                voteplayer1++;
+                break;
+            case 2:
+                voteplayer2++;
+                break;
+            case 3:
+                voteplayer3++;
+                break;
+        }
 
     }
+
     printf("debug print after votes came in + count\n\n");
+    printf("%d %d %d %d \n", votes[0],votes[1],votes[2],votes[3]);
 
-    for (int i = 0;i<1;i++)
-    {
-        printf("%s heeft %d votes\n", names[i], votes[i]);
-    }
+    printf("%s heeft %d votes\n", names[i], votes[i]);
+
 
     int temp = 0;
     int most_votes = votes[0];
@@ -162,9 +204,22 @@ int main( int argc, char * argv[] )
         {
             most_votes = votes[i];
             temp = i;
+            votes[i] = atoi(ParsedString);
+            printf("kijken wat er gebeurd met de votes");
+            printf("%d\n", votes[i]);
+
         }
     }
-    printf("\n%s\n", votes[temp]);
+
+    for (int i = 0;i<4;i++)
+    {
+     printf("%d\n", votes[i]);
+    }
+    printf("printje van alle votes na comparison\n");
+
+    printf("%s heeft %d votes\n", names[i], votes[i]);
+
+//    printf("\n%s\n", votes[temp]);
 //
 //    for(int i = temp; i < rounds;i++)
 //    {
