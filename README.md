@@ -13,6 +13,6 @@ The win conditions are the following:
 
 ### compile
 
-To compile this project you need to copy paste the profile in both the service and clients. You will also need to download the inlcudes directtory and follow the explained steps in that directory of how to save/use the includes.
+To compile this project you need to copy paste the ProFile in both the ProFiles of the service and clients. You will also need to download the inlcudes directory and follow the explained steps in that directory of how to save/use the includes.
 
 More info on my wiki page
