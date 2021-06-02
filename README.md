@@ -10,4 +10,9 @@ The win conditions are the following:
 2. if 1 imposter and 1 crewmember is left, the imposters win.
 3. if there are 2 imposters and 2 crewmembers, the imposters win as well.
 
+
+### compile
+
+To compile this project you need to copy paste the profile in both the service and clients. You will also need to download the inlcudes directtory and follow the explained steps in that directory of how to save/use the includes.
+
 More info on my wiki page
