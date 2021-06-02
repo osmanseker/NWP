@@ -32,10 +32,9 @@ int main( int argc, char * argv[] )
     const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player1!>";
 
     //variables
-
     char sendvote[20];
     char tempvote[3];
-    int votelim = 0;
+    int vote = 0;
     char name[15];
     char sendname[50];
     char buffer [256];
@@ -84,12 +83,20 @@ int main( int argc, char * argv[] )
     //sending name to server
     rp = zmq_send(publisher, sendname, strlen(sendname), 0);
 
-    //receive message of joined names
+    //receive list of joined names
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
     ParsedString = parse(3, buffer);
     printf("%s\n", ParsedString);
 
+    /*
+    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>imposter?>", 18);
+    //receive message "imposter or not"
+    memset(buffer,0,256);
+    zmq_recv(subscriber, buffer, 256,0);
+    ParsedString = parse(3, buffer);
+    printf("%s\n", ParsedString);
+*/
     zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>vote?>", 14);
     //receive message "choose to vote"
     memset(buffer,0,256);
@@ -98,23 +105,24 @@ int main( int argc, char * argv[] )
     printf("%s\n", ParsedString);
 
     //code to send vote
-    do
+    scanf("%d", &vote);
+    while(vote > 10 || vote < 1)
     {
-        scanf("%d", &votelim);
+        printf("Number has to be a number that is present in the list.\nTry again: ");
+        scanf("%d", &vote);
+    }
 
-    }while(votelim > 10 || votelim < 1);
-
-    sprintf(tempvote, "%d" ,votelim );
+    itoa(vote, tempvote,10);
     strcpy(sendvote, BerichtPlayer);
     strcat(sendvote, tempvote);
 
-    printf("%s",sendvote);
-
     zmq_send(publisher, sendvote, strlen(sendvote),0);
+
+
 
     zmq_close (publisher);
     zmq_close (subscriber);
     zmq_ctx_destroy (context);
     return 0;
-    
+
 }
