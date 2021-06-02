@@ -35,21 +35,16 @@ int main( int argc, char * argv[] )
     const char *filterjoin = (argc > 1)? argv [1]: "AmongUs>player!>";
     const char *filtervote = (argc > 1)? argv [1]: "AmongUs>vote!>";
     const char *filterimposter = (argc > 1)? argv [1]: "AmongUs>imposter!>";
+    const char *filteragain = (argc > 1)? argv [1]: "AmongUs>again!>";
 
     //variables
-    int votes[10] = {0};
-    int voteplayer0 = 0;
-    int voteplayer1 = 0;
-    int voteplayer2 = 0;
-    int voteplayer3 = 0;
+    int votes[10] = {0};    
     int players = 10;
     int rounds = 9;
-    int r;
     srand(time(0));
 
     char sentimpmsg[10][20];
     char sentcrewmsg[10][25];
-    char voterec[3];
     char opsomming[10];
     char names[10][20];
     char sentnames[256] = "AmongUs>Player?>";
@@ -88,14 +83,26 @@ int main( int argc, char * argv[] )
             }
             else
             {
-                printf("service ready!\n\n");
+                printf("service ready!\n");
             }
+//whole game in a while loop
+while(1)
+{
+
+    sentnames[0] = '\0';
+    strcpy(sentnames, "AmongUs>Player?>");
+    sentall[0] = '\0';
+
+    for (int i = 0;i <4;i++)
+    {
+           names[i][0] = '\0';
+    }
 
     //Subscribing to players
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filterjoin, 10);
 
     //stroring player names in names[] and displaying joined players
-    printf("waiting for players to enter name...\n\n");
+    printf("\nwaiting for players to enter name...\n\n");
     for( int i = 0; i < 4; i++)
     {
         memset(buffer,0,256);
@@ -105,17 +112,8 @@ int main( int argc, char * argv[] )
     }
 
 
-
     //print list of players to all clients
-    printf("print voor memset\n\n");
-    memset(buffer,0,256);
-
-    //strcpy(sentnames, "AmongUs>Player?>");
-    memset(sentall,0,256);
-    buffer[0] = '\0';
     strcpy(sentall,"These are the players that joined\n\n");
-    //printf("%s\n", sentnames);
-
     for (int i = 0; i < 4; i++)
     {
         sprintf(opsomming, "%d. ",i+1);
@@ -158,6 +156,7 @@ int main( int argc, char * argv[] )
         }
     }
 */
+
     //voting system for crewmembers
     printf("Crewmembers are voting...\n\n");
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filtervote, 14);
@@ -171,65 +170,38 @@ int main( int argc, char * argv[] )
         ParsedString = parse(3, buffer);
         printf("%s\n", buffer);
         votes[i] = atoi(ParsedString);
-
-        switch (votes[i])
-        {
-            case 0:
-                voteplayer0++;
-                break;
-            case 1:
-                voteplayer1++;
-                break;
-            case 2:
-                voteplayer2++;
-                break;
-            case 3:
-                voteplayer3++;
-                break;
-        }
-
     }
-
-    printf("debug print after votes came in + count\n\n");
-    printf("%d %d %d %d \n", votes[0],votes[1],votes[2],votes[3]);
-
-    printf("%s heeft %d votes\n", names[i], votes[i]);
 
 
     int temp = 0;
-    int most_votes = votes[0];
+    int most_votes = 0;
+    int votecount[10] = {0};
     for (int i = 0; i < 4 ; i++)
     {
-        if(most_votes < votes[i])
-        {
-            most_votes = votes[i];
-            temp = i;
-            votes[i] = atoi(ParsedString);
-            printf("kijken wat er gebeurd met de votes");
-            printf("%d\n", votes[i]);
+        votecount[votes[i] -1] = votecount[votes[i] -1] +1;
+    }
 
+    //list of players with amounts of votes
+    for (int i = 0; i < 4; i++)
+    {
+        printf("\n%s : %d", names[i], votecount[i]);
+        if(most_votes < votecount[i])
+        {
+            most_votes = votecount[i];
+            temp = i;
         }
     }
+    printf("\n%s has the most votes with %d votes\n", names[temp], votecount[temp]);
 
-    for (int i = 0;i<4;i++)
-    {
-     printf("%d\n", votes[i]);
-    }
-    printf("printje van alle votes na comparison\n");
 
-    printf("%s heeft %d votes\n", names[i], votes[i]);
-
-//    printf("\n%s\n", votes[temp]);
-//
-//    for(int i = temp; i < rounds;i++)
-//    {
-//       strcpy(names[i], names[i+1]);
-//    }
+    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, filteragain, 15);
+    zmq_send(publisher, "AmongUs>vote?>Do you want to play again? y or n?\n", 51,0);
 
 
 
+    sleep(2);
 
-
+}
     zmq_close (subscriber);
     zmq_close (publisher);
     zmq_ctx_destroy (context);
