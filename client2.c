@@ -108,12 +108,10 @@ int main( int argc, char * argv[] )
     strcpy(sendvote, BerichtPlayer);
     strcat(sendvote, tempvote);
 
-    printf("%s",sendvote);
-
     zmq_send(publisher, sendvote, strlen(sendvote),0);
 
     zmq_close (publisher);
     zmq_close (subscriber);
     zmq_ctx_destroy (context);
-    
+
 }
