@@ -32,7 +32,7 @@ int main( int argc, char * argv[] )
     const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player3!>";
 
     //variables
-
+    char c;
     char sendvote[20];
     char tempvote[3];
     int votelim = 0;
@@ -68,7 +68,9 @@ int main( int argc, char * argv[] )
     printf("\nThe rules are very simpel: Don't get voted out as crewmate OR don't get killed by the imposters!\n");
     printf("\nThe goals is to vote out the imposters before they kill all the crewmates!\n");
     printf("\n**************************************************************************\n\n\n");
-
+//put whole game in a do-while loop
+do
+{
     //subscribing to player
     zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>Player?>", 16);
 
@@ -110,7 +112,28 @@ int main( int argc, char * argv[] )
 
     zmq_send(publisher, sendvote, strlen(sendvote),0);
 
+    printf("waiting for votes to be counted...\n\n");
+
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>again?>", 15);
+    //receive message "choose to vote"
+    memset(buffer,0,256);
+    zmq_recv(subscriber, buffer, 256,0);
+    ParsedString = parse(3, buffer);
+    printf("%s\n", ParsedString);
+
+    scanf("%s", &c);
+    if(c == 'y')
+    {
+       printf("\n\t*************** A new game has started! ***************\n");
+    }
+    else
+    {
+           printf("\nThank you for playing! See you next time!\n");
+    }
+}while( c == 'y');
+
     zmq_close (publisher);
     zmq_close (subscriber);
     zmq_ctx_destroy (context);
+    return 0;
 }
