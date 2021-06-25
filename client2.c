@@ -30,7 +30,7 @@ char *parse(int keer, char *ParseString)
 int main( int argc, char * argv[] )
 {
     //bericht
-    const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player1!>";
+    const char *BerichtPlayer = (argc > 1)? argv [1]: "AmongUs>player2!>";
 
 
                 //connect
@@ -60,7 +60,6 @@ int main( int argc, char * argv[] )
     printf("\nThe rules are very simpel: Don't get voted out as crewmate OR don't get killed by the imposters!\n");
     printf("\nThe goals is to vote out the imposters before they kill all the crewmates!\n");
     printf("\n**************************************************************************\n\n\n");
-
 //put whole game in a do-while loop
 while(1)
 {
@@ -88,7 +87,7 @@ while(1)
     strcat(sendname, name);
 
     //sending name to server
-    zmq_send(publisher, sendname, strlen(sendname), 0);
+    rp = zmq_send(publisher, sendname, strlen(sendname), 0);
 
     //receive message of joined names
     memset(buffer,0,256);
@@ -97,8 +96,8 @@ while(1)
     printf("%s\n", ParsedString);
 
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>Player?>", 16 );
-    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>imposter1?>", 19);
-    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>crewmember1?>", 21);
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>imposter2?>", 19);
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>crewmember2?>", 21);
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
     ParsedString = parse(3, buffer);
@@ -116,8 +115,9 @@ while(1)
     }
 
 
-    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>imposter1?>", 19);
-    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE,"AmongUs>crewmember1?>", 21);
+
+    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>imposter2?>", 18);
+    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE,"AmongUs>crewmember2?>", 20);
 
     for (int i = 0 ;i<players;i++)
     {
@@ -129,6 +129,7 @@ while(1)
             ParsedString = parse(3, buffer);
             printf("%s\n", ParsedString);
         }
+
 
         if((strcmp(ParsedString, "Choose the number of player who you want to kill: ")) == 0)
         {
@@ -151,7 +152,7 @@ while(1)
         }
         zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE,"AmongUs>skipvote?>", 18);
 
-        k: zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>kick1?>", 15);
+        k: zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>kick2?>", 15);
         memset(buffer,0,256);
         zmq_recv(subscriber, buffer, 256,0);
         ParsedString = parse(3, buffer);
@@ -164,7 +165,7 @@ while(1)
 
 
     //receive message "choose to vote"
-    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>vote?>", 14);
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "AmongUs>vote?>", 14);
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
     ParsedString = parse(3, buffer);
@@ -195,7 +196,8 @@ while(1)
     s: printf("waiting for votes to be counted...\n\n");
 
     //receive message if kicked or not
-    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>kick1?>", 15);
+    zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>kick2?>", 15);
+
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
     ParsedString = parse(3, buffer);
@@ -203,9 +205,9 @@ while(1)
 
     e: if((strcmp(ParsedString, "You have been kicked\n")) == 0)
     {
-        printf("**Wait untill the game is done...**\n\n");
+        printf("Wait untill the game is done...\n\n");
         zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>vote?>", 14 );
-        zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>kick1?>", 15 );
+        zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>kick2?>", 15 );
         zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>impvote?>", 17 );
         goto w;
     }
@@ -229,8 +231,9 @@ while(1)
     {
        zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>again?>", 15);
     }
+
 }
-    //receive win message
+    //receive  win
     w: zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "AmongUs>winner?>", 16);
     memset(buffer,0,256);
     zmq_recv(subscriber, buffer, 256,0);
@@ -248,17 +251,16 @@ while(1)
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>Player?>", 16 );
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>impvote?>", 17 );
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>vote?>", 14);
-    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>kick1?>", 15 );
+    zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>kick2?>", 15 );
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>winner?>", 16 );
     zmq_setsockopt(subscriber, ZMQ_UNSUBSCRIBE, "AmongUs>again?>", 15 );
-
     sleep(4);
-
 }
 
     zmq_close (publisher);
     zmq_close (subscriber);
     zmq_ctx_destroy (context);
     return 0;
+
 }
 
